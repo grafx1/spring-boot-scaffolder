@@ -1,0 +1,43 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+}
+
+group = 'sn.consultit.scaffolder'
+version = '1.0.2'
+
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.freemarker:freemarker:2.3.32'
+
+    // Dépendances de test
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
+    testImplementation 'org.assertj:assertj-core:3.24.2'
+
+}
+
+test {
+    useJUnitPlatform() // Active JUnit 5
+}
+
+gradlePlugin {
+    plugins {
+        scaffoldPlugin {
+            id = 'sn.consultit.scaffolder'
+            implementationClass = 'sn.consultit.scaffolder.ScaffolderPlugin'
+        }
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
