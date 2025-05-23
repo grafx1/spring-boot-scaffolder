@@ -1,7 +1,16 @@
 package ${packageName}.service;
 
-import org.springframework.stereotype.Service;
+
+import ${packageName}.dto.${className}Dto;
+
+import java.util.List;
 
 public interface ${className}Service {
-    // Implement service logic here
+
+    ${className}Dto save(${className}Dto dto);
+    ${className}Dto find(String id);
+    List<${className}Dto> findAll();
+    ${className}Dto update(String id, ${className}Dto dto);
+    void delete(String id);
+
 }
