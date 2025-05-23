@@ -10,11 +10,22 @@
 Ajoutez ce plugin à votre projet Spring Boot :
 
 ### 1. Dans `settings.gradle` (si local)
+#### 1.1 Sans publication sur le maven local
 ```groovy
 pluginManagement {
     includeBuild('../spring-boot-scaffolder') // chemin relatif vers le plugin
 }
 ```
+#### 1.2 Avec publication sur le maven local
+```groovy
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+    }
+}
+```
+
 
 ### 2. Dans `build.gradle` du projet utilisateur :
 ```groovy
