@@ -33,6 +33,13 @@ plugins {
     id "sn.consultit.scaffolder" version "1.0.0"
 }
 ```
+Si vous l'avez publié sur votre repos local il faudra l'ajouter sur les repositories
+```groovy
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+```
 
 ---
 
