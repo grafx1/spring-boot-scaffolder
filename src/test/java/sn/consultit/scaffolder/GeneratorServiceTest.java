@@ -29,7 +29,7 @@ class GeneratorServiceTest {
         String fqcn = "com.example.test.User";
 
         // WHEN
-        generatorService.generateAll(fqcn, tempDir);
+        generatorService.generateAll(fqcn, tempDir, true);
 
         // THEN
         List<String> expectedFiles = List.of(
