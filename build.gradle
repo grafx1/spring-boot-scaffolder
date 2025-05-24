@@ -1,11 +1,12 @@
 plugins {
+    id 'java'
+    id 'application' // 🔥 pour exécutable CLI
     id 'java-gradle-plugin'
     id 'maven-publish'
 }
 
 group = 'sn.consultit.scaffolder'
 version = '1.0.1'
-
 
 repositories {
     mavenCentral()
@@ -14,17 +15,32 @@ repositories {
 dependencies {
     implementation 'org.freemarker:freemarker:2.3.32'
 
-    // Dépendances de test
+    // Tests
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
     testImplementation 'org.assertj:assertj-core:3.24.2'
-
 }
 
 test {
-    useJUnitPlatform() // Active JUnit 5
+    useJUnitPlatform()
 }
 
+application {
+    // 🔥 Point d’entrée CLI pour java -jar
+    mainClass = 'sn.consultit.scaffolder.Main'
+}
+
+jar {
+    manifest {
+        attributes(
+                'Implementation-Title': 'Spring Boot Scaffolder',
+                'Implementation-Version': version,
+                'Main-Class': application.mainClass.get()
+        )
+    }
+}
+
+// ✅ Plugin Gradle (utilisation via `id "sn.consultit.scaffolder"`)
 gradlePlugin {
     plugins {
         scaffoldPlugin {
@@ -34,10 +50,17 @@ gradlePlugin {
     }
 }
 
+// ✅ Publication Maven local ou central
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
+            groupId = project.group
+            artifactId = 'spring-boot-scaffolder'
+            version = project.version
         }
+    }
+    repositories {
+        mavenLocal()
     }
 }

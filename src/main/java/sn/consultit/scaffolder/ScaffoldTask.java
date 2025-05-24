@@ -9,32 +9,34 @@ public class ScaffoldTask extends DefaultTask {
 
     @TaskAction
     public void generate() {
-        String help = (String) getProject().findProperty("showHelp");
+        String help = (String) getProject().findProperty("scaffoldHelp");
         if ("true".equalsIgnoreCase(help)) {
             printHelp();
             return;
         }
 
         String fqcnList = (String) getProject().findProperty("fqcn");
+        boolean withTests = "true".equalsIgnoreCase((String) getProject().findProperty("withTests"));
+
         if (fqcnList == null || fqcnList.isBlank()) {
-            System.err.println("Erreur : aucune classe spécifiée !");
+            System.err.println("❌ Argument manquant : utilisez -Pfqcn=com.example.MyClass");
             printHelp();
-            throw new IllegalArgumentException("Aucune FQCN n'a été fournie. Utilisez -Pfqcn=... ou -Phelp=true");
+            throw new IllegalArgumentException("Aucune FQCN n'a été fournie.");
         }
 
         String[] fqcnArray = fqcnList.split(",");
-
         GeneratorService generatorService = new GeneratorService();
         Path projectRoot = getProject().getProjectDir().toPath();
 
         for (String fqcn : fqcnArray) {
             fqcn = fqcn.trim();
             if (!fqcn.isEmpty()) {
-                System.out.println(" Génération : " + fqcn);
-                generatorService.generateAll(fqcn, projectRoot);
+                System.out.println("🚀 Génération : " + fqcn + (withTests ? " (avec tests)" : ""));
+                generatorService.generateAll(fqcn, projectRoot, withTests);
             }
         }
     }
+
 
     private void printHelp() {
         System.out.println("\n Spring Boot Scaffolder Plugin - Aide");

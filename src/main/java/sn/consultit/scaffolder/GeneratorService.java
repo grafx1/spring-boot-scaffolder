@@ -20,9 +20,9 @@ public class GeneratorService {
         cfg.setClassLoaderForTemplateLoading(getClass().getClassLoader(), "templates");
     }
 
-    public void generateAll(String fqcn, Path baseDir) {
+    public void generateAll(String fqcn, Path baseDir, boolean withTests) {
         String[] parts = fqcn.split("\\.");
-        if (parts.length < 2) throw new IllegalArgumentException("Fully qualified class name expected (e.g. user.User)");
+        if (parts.length < 2) throw new IllegalArgumentException("Fully qualified class name expected");
 
         String packageName = String.join(".", Arrays.copyOf(parts, parts.length - 1));
         String className = parts[parts.length - 1];
@@ -34,15 +34,42 @@ public class GeneratorService {
         data.put("classNameLower", classNameLower);
 
         String[] types = {"Entity", "Dto", "Repository", "Service", "ServiceImpl", "Controller", "Mapper"};
-        String[] subPackages = {"entity", "dto", "repository", "service", "service/impl", "controller", "mapper"};
+        String[] subPackages = {"entity", "dto", "repository", "service", "service.impl", "controller", "mapper"};
 
         for (int i = 0; i < types.length; i++) {
             Path outputDir = baseDir.resolve("src/main/java")
                     .resolve(packageName.replace('.', '/'))
-                    .resolve(subPackages[i]);
+                    .resolve(subPackages[i].replace('.', '/'));
             generateFile(types[i] + "Template.java.ftl", outputDir, className + types[i] + ".java", data);
         }
+
+        if (withTests) {
+            generateTestFiles(className, packageName, classNameLower, baseDir, data);
+        }
     }
+
+    private void generateTestFiles(String className, String packageName, String classNameLower, Path baseDir, Map<String, Object> data) {
+        String[] testTemplates = {
+                "ServiceTest.java.ftl",
+                "ControllerTest.java.ftl",
+                "MapperTest.java.ftl"
+        };
+
+        String[] testPaths = {
+                "service",
+                "controller",
+                "mapper"
+        };
+
+        for (int i = 0; i < testTemplates.length; i++) {
+            Path outputDir = baseDir.resolve("src/test/java")
+                    .resolve(packageName.replace('.', '/'))
+                    .resolve(testPaths[i]);
+            String filename = className + testTemplates[i].replace(".ftl", "");
+            generateFile("test/" + testTemplates[i], outputDir, filename, data);
+        }
+    }
+
 
     private void generateFile(String templateName, Path outputDir, String outputFile, Map<String, Object> data) {
         try {
