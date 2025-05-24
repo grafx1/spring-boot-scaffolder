@@ -59,7 +59,7 @@ pluginManagement {
 ### 2. Add the plugin to your `build.gradle`
 ```groovy
 plugins {
-    id 'io.github.grafx1.scaffolder' version '1.0.1'
+    id 'io.github.grafx1.scaffolder' version '2.0'
 }
 
 repositories {
@@ -83,7 +83,7 @@ repositories {
 <dependency>
   <groupId>io.github.grafx1.scaffolder</groupId>
   <artifactId>spring-boot-scaffolder</artifactId>
-  <version>1.0.1</version>
+  <version>2.0</version>
 </dependency>
 ```
 
