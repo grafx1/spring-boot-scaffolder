@@ -1,11 +1,13 @@
 plugins {
     id 'java'
-    id 'application' // 🔥 pour exécutable CLI
     id 'java-gradle-plugin'
     id 'maven-publish'
+    id 'signing'
+    id 'application'
+    id 'com.gradle.plugin-publish' version '1.3.1'
 }
 
-group = 'sn.consultit.scaffolder'
+group = 'io.github.grafx1.scaffolder'
 version = '1.0.1'
 
 repositories {
@@ -15,19 +17,17 @@ repositories {
 dependencies {
     implementation 'org.freemarker:freemarker:2.3.32'
 
-    // Tests
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
     testImplementation 'org.assertj:assertj-core:3.24.2'
 }
 
-test {
+tasks.named('test') {
     useJUnitPlatform()
 }
 
 application {
-    // 🔥 Point d’entrée CLI pour java -jar
-    mainClass = 'sn.consultit.scaffolder.Main'
+    mainClass = 'io.github.grafx1.scaffolder.Main'
 }
 
 jar {
@@ -40,17 +40,22 @@ jar {
     }
 }
 
-// ✅ Plugin Gradle (utilisation via `id "sn.consultit.scaffolder"`)
 gradlePlugin {
+    website = 'https://github.com/grafx1/spring-boot-scaffolder'
+    vcsUrl = 'https://github.com/grafx1/spring-boot-scaffolder.git'
     plugins {
         scaffoldPlugin {
-            id = 'sn.consultit.scaffolder'
-            implementationClass = 'sn.consultit.scaffolder.ScaffolderPlugin'
+            id = 'io.github.grafx1.scaffolder'
+            implementationClass = 'io.github.grafx1.scaffolder.ScaffolderPlugin'
+            displayName = 'Spring Boot scaffolding Plugin'
+            description = 'Spring Boot scaffolding generator based on FreeMarker : Entity, DTO, Service, Controller...'
+            tags.set(['spring', 'freemarker', 'scaffolding', 'spring-boot', 'boilerplate'])
         }
     }
 }
 
-// ✅ Publication Maven local ou central
+
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -58,9 +63,40 @@ publishing {
             groupId = project.group
             artifactId = 'spring-boot-scaffolder'
             version = project.version
+
+            pom {
+                name = 'Spring Boot Scaffolder Plugin'
+                description = 'Generate layered architecture for Spring Boot (Entity, Mapper, Repository, DTO, Service, Controller)'
+                url = 'https://github.com/grafx1/spring-boot-scaffolder'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'grafx1'
+                        name = 'Moctar DIOP'
+                        email = 'moctar.diop@live.fr'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git://github.com/grafx1/spring-boot-scaffolder.git'
+                    developerConnection = 'scm:git:ssh://github.com:grafx1/spring-boot-scaffolder.git'
+                    url = 'https://github.com/grafx1/spring-boot-scaffolder'
+                }
+            }
         }
     }
+
     repositories {
         mavenLocal()
     }
 }
+
+signing {
+    useGpgCmd()
+    sign publishing.publications.mavenJava
+}
+

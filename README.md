@@ -1,22 +1,52 @@
 
-# 🧰 Spring Boot Scaffolder Plugin
+# 🧰 Spring Boot Scaffolder Plugin - User Guide
 
-> Générateur de code pour Spring Boot : entités, DTO, repositories, services, controllers et mappers, basé sur FreeMarker.
+This plugin automatically generates the structure of a Spring Boot module using a **domain-oriented package layout**:
+
+```
+📂com
+  📂 example
+    📂 myapplication
+        - MyApplication.java
+        |
+        📂 customer
+        |  📂 entity
+        |     - CustomerEntity.java
+        |  📂 controller
+        |      - CustomerController.java
+        |  📂 service
+        |      📂 impl
+        |         - CustomerServiceImpl.java
+        |       - CustomerService.java
+        |  📂 repository
+        |      - CustomerRepository.java
+        |  📂 dto
+        |      - CustomerDto.java
+        |  📂 mapper
+        |      - CustomerMapper.java
+```
+
+It scaffolds the following layers for each entity:
+- Entity
+- DTO
+- Repository
+- Service
+- Controller
+- Mapper
 
 ---
 
-## 🚀 Installation
+## 📦 Building and Publishing the Plugin (via Gradle)
 
-Ajoutez ce plugin à votre projet Spring Boot :
-
-### 1. Dans `settings.gradle` (si local)
-#### 1.1 Sans publication sur le maven local
-```groovy
-pluginManagement {
-    includeBuild('../spring-boot-scaffolder') // chemin relatif vers le plugin
-}
+```bash
+./gradlew clean build publishToMavenLocal
 ```
-#### 1.2 Avec publication sur le maven local
+
+---
+
+## 🛠️ Usage with a Gradle Project
+
+### 1. Update your `settings.gradle`
 ```groovy
 pluginManagement {
     repositories {
@@ -26,120 +56,72 @@ pluginManagement {
 }
 ```
 
-
-### 2. Dans `build.gradle` du projet utilisateur :
+### 2. Add the plugin to your `build.gradle`
 ```groovy
 plugins {
-    id "sn.consultit.scaffolder" version "1.0.0"
+    id 'io.github.grafx1.scaffolder' version '1.0.1'
 }
-```
-Si vous l'avez publié sur votre repos local il faudra l'ajouter sur les repositories
-```groovy
+
 repositories {
-    mavenLocal()
-    mavenCentral()
+	mavenLocal()
+	mavenCentral()
 }
 ```
 
----
-
-## ⚙️ Prérequis
-
-- Java 21+
-- Gradle 8.10+
-- Structure classique Spring Boot : `src/main/java/...`
-
----
-
-## 🛠 Utilisation
-
-### 🔨 Générer une seule classe :
+### 3. Run the scaffold generator
 ```bash
-./gradlew scaffold -Pfqcn="sn.example.domain.User"
-```
-
-### 🔨 Générer plusieurs classes d’un coup :
-```bash
-./gradlew scaffold -Pfqcn="sn.example.domain.User,sn.example.domain.Product"
-```
-
-### ❓ Afficher l’aide :
-```bash
-./gradlew scaffold -PshowHelp=true
+./gradlew scaffold -PentityName="Customer,Invoice" -PwithTests=true
 ```
 
 ---
 
-## 📦 Fichiers générés
+## 📦 Usage with a Maven Project
 
-Pour chaque entité, le plugin génère :
+### 1. Add the dependency in `pom.xml`
 
-```
-src/main/java/{package}/entity/{ClassName}Entity.java
-src/main/java/{package}/dto/{ClassName}Dto.java
-src/main/java/{package}/repository/{ClassName}Repository.java
-src/main/java/{package}/service/{ClassName}Service.java
-src/main/java/{package}/service/impl/{ClassName}ServiceImpl.java
-src/main/java/{package}/controller/{ClassName}Controller.java
-src/main/java/{package}/mapper/{ClassName}Mapper.java
+```xml
+<dependency>
+  <groupId>io.github.grafx1.scaffolder</groupId>
+  <artifactId>spring-boot-scaffolder</artifactId>
+  <version>1.0.1</version>
+</dependency>
 ```
 
-Les fichiers sont générés à partir des templates FreeMarker dans `resources/templates`.
+### 2. Configure `exec-maven-plugin`
 
----
+```xml
+<plugin>
+  <groupId>org.codehaus.mojo</groupId>
+  <artifactId>exec-maven-plugin</artifactId>
+  <version>3.1.0</version>
+  <executions>
+    <execution>
+      <id>scaffold</id>
+      <phase>none</phase> <!-- Run manually -->
+      <goals><goal>java</goal></goals>
+    </execution>
+  </executions>
+  <configuration>
+    <mainClass>io.github.grafx1.scaffolder.Main</mainClass>
+    <classpathScope>runtime</classpathScope>
+    <arguments>
+      <argument>${entityName}</argument>
+      <argument>${withTests}</argument>
+    </arguments>
+  </configuration>
+</plugin>
+```
 
-## 📁 Exemple
+### 3. Launch the scaffolding process
 
 ```bash
-./gradlew scaffold -Pfqcn="com.example.hr.Employee"
-```
-
-Créera automatiquement les fichiers :
-
-```
-src/main/java/com/example/hr/entity/EmployeeEntity.java
-src/main/java/com/example/hr/dto/EmployeeDto.java
-...
+mvn exec:java -DentityName="Customer,Invoice" -DwithTests="true"
 ```
 
 ---
 
-## 📐 Templates
+## 📂 Output Structure
 
-Les templates sont définis dans :
-```
-src/main/resources/templates/*.ftl
-```
-
-> Vous pouvez personnaliser vos propres templates dans un fork ou une extension du plugin.
-
----
-
-## ⚠️ Conseils
-
-- ❗ N’utilisez pas `-Pclass` ou `-Phelp`, ce sont des mots réservés par Gradle.
-- ✅ Préférez `-Pfqcn` pour la/les classes, `-PshowHelp=true` pour l’aide.
-- 📁 Les chemins sont générés automatiquement selon le `FQCN`.
-
----
-
-## 🔧 Débogage
-
-Pour afficher le répertoire courant du projet appelant :
-```bash
-./gradlew scaffold -Pfqcn="com.example.MyEntity" --info
-```
-
-Pour voir les logs détaillés :
-```bash
-./gradlew scaffold -Pfqcn="com.example.MyEntity" --stacktrace
-```
-
----
-
-## 📣 Contribution
-
-Les pull requests sont les bienvenues !  
-Merci de suivre la structure standard Spring + FreeMarker.
-
-
+The scaffolder will generate:
+- Business logic files in `src/main/java`
+- Test files in `src/test/java` if `withTests=true` ✅
