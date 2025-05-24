@@ -1,4 +1,4 @@
-package sn.consultit.scaffolder;
+package io.github.grafx1.scaffolder;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -6,13 +6,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.*;
 import java.io.*;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static org.apache.tools.ant.Project.getProject;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class GeneratorServiceTest {
 
@@ -26,20 +22,20 @@ class GeneratorServiceTest {
     @Test
     void testGenerateAll_shouldCreateAllExpectedFiles(@TempDir Path tempDir) throws IOException {
         // GIVEN
-        String fqcn = "com.example.test.User";
+        String fqcn = "com.example.test.user.User";
 
         // WHEN
         generatorService.generateAll(fqcn, tempDir, true);
 
         // THEN
         List<String> expectedFiles = List.of(
-                "entity/UserEntity.java",
-                "dto/UserDto.java",
-                "repository/UserRepository.java",
-                "service/UserService.java",
-                "service/impl/UserServiceImpl.java",
-                "controller/UserController.java",
-                "mapper/UserMapper.java"
+                "user/entity/UserEntity.java",
+                "user/dto/UserDto.java",
+                "user/repository/UserRepository.java",
+                "user/service/UserService.java",
+                "user/service/impl/UserServiceImpl.java",
+                "user/controller/UserController.java",
+                "user/mapper/UserMapper.java"
         );
 
         for (String relPath : expectedFiles) {
