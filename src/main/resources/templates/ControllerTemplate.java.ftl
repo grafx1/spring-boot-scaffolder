@@ -1,9 +1,11 @@
 package ${packageName}.controller;
 
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
 
 import ${packageName}.dto.${className}Dto;
 import ${packageName}.service.${className}Service;
@@ -21,8 +23,8 @@ public class ${className}Controller {
     }
 
     @GetMapping
-    public ResponseEntity<?> findAll() {
-        return ResponseEntity.ok(service.findAll());
+    public ResponseEntity<?> findAll(@RequestParam String searchTerm, Pageable pageable) {
+        return ResponseEntity.ok(service.findAll(searchTerm, pageable));
     }
 
     @PutMapping("/{id}")

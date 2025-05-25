@@ -1,17 +1,17 @@
 package ${packageName}.service.impl;
 
+
+import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
 
 import ${packageName}.dto.${className}Dto;
 import ${packageName}.service.${className}Service;
 import ${packageName}.entity.${className}Entity;
 import ${packageName}.mapper.${className}Mapper;
 import ${packageName}.repository.${className}Repository;
-
-import lombok.AllArgsConstructor;
-import java.util.List;
-import java.util.stream.Collectors;
-
 
 @Service
 @AllArgsConstructor
@@ -34,10 +34,8 @@ public class ${className}ServiceImpl implements ${className}Service {
     }
 
     @Override
-    public List<${className}Dto> findAll() {
-        return repository.findAll().stream()
-                .map(mapper::toDto)
-                .collect(Collectors.toList());
+    public Page<${className}Dto> findAll(String term, Pageable pageable) {
+        return mapper.toDtoPage(repository.findAll(term, pageable));
     }
 
     @Override
