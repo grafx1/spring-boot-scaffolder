@@ -53,8 +53,8 @@ jobs:
           sha1sum "$f" | awk '{ print $1 }' > "$f.sha1"
           done
           
-        # Créer le ZIP sans aucun ./ ni dossier
-        # On utilise zip à partir d'une liste de fichiers sans chemin
+          # Créer le ZIP sans aucun ./ ni dossier
+          # On utilise zip à partir d'une liste de fichiers sans chemin
           find . -maxdepth 1 -type f -printf "%P\n" | zip ../central-bundle.zip -@
           cd ..
 
