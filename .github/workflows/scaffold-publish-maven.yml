@@ -30,9 +30,9 @@ jobs:
 
       - name: Import GPG Key
         run: |
-          echo "$SIGNING_KEY" | gpg --batch --import
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
         env:
-          GPG_PRIVATE_KEY: ${{ secrets.SIGNING_KEY }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
       - name: Build and sign artifacts
         run: ./gradlew clean build publishToMavenLocal signMavenJavaPublication
