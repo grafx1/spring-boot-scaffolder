@@ -44,18 +44,17 @@ jobs:
       
           # Copie des artefacts à la racine du dossier bundle
           cp $ARTIFACT_PATH/* bundle/
-      
+          
           cd bundle
-      
-          # Génère .md5 et .sha1 pour chaque fichier
+
           for f in *; do
           [ -f "$f" ] || continue
           md5sum "$f" | awk '{ print $1 }' > "$f.md5"
           sha1sum "$f" | awk '{ print $1 }' > "$f.sha1"
           done
-      
+        
+          zip ../central-bundle.zip *
           cd ..
-          zip -j central-bundle.zip bundle/*
 
       - name: Upload bundle to Sonatype Central Publisher
         id: upload
