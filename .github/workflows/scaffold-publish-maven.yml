@@ -22,7 +22,7 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: 🧾 Extract version from Gradle
+      - name: Extract version from Gradle
         id: version
         run: echo "version=$(./gradlew -q properties | grep "^version:" | awk '{print $2}')" >> $GITHUB_OUTPUT
 
@@ -38,8 +38,24 @@ jobs:
       - name: Create central-bundle.zip from ~/.m2
         run: |
           mkdir bundle
-          cp ~/.m2/repository/io/github/grafx1/scaffolder/spring-boot-scaffolder/${{ steps.version.outputs.version }}/* bundle/
-          zip -r central-bundle.zip bundle
+
+          # Localisation des artefacts
+          ARTIFACT_PATH="$HOME/.m2/repository/io/github/grafx1/scaffolder/spring-boot-scaffolder/${{ steps.version.outputs.version }}"
+      
+          # Copie des artefacts à la racine du dossier bundle
+          cp $ARTIFACT_PATH/* bundle/
+      
+          cd bundle
+      
+          # Génère .md5 et .sha1 pour chaque fichier
+          for f in *; do
+          [ -f "$f" ] || continue
+          md5sum "$f" | awk '{ print $1 }' > "$f.md5"
+          sha1sum "$f" | awk '{ print $1 }' > "$f.sha1"
+          done
+      
+          cd ..
+          zip -j central-bundle.zip bundle/*
 
       - name: Upload bundle to Sonatype Central Publisher
         id: upload
