@@ -131,30 +131,34 @@ tasks.register('createCentralBundle', Zip) {
     def version = project.version
     def artifactPath = file("${System.getProperty("user.home")}/.m2/repository/io/github/grafx1/scaffolder/spring-boot-scaffolder/$version")
 
-    // Crée un répertoire temporaire
-    def tmpDir = file("$buildDir/central-bundle-temp")
+    def outputDir = layout.buildDirectory.dir("central-bundle-temp").get().asFile
+    def outputZip = layout.buildDirectory.file("central-bundle.zip").get().asFile
+
+    // 🔧 Préparation des fichiers
     doFirst {
-        tmpDir.mkdirs()
+        outputDir.mkdirs()
+
         artifactPath.eachFile { file ->
             if (file.isFile()) {
-                def destFile = new File(tmpDir, file.name)
+                def destFile = new File(outputDir, file.name)
                 file.copyTo(destFile)
 
-                // ✅ Génère .md5
+                // ✅ .md5
                 def md5 = MessageDigest.getInstance("MD5")
                 md5.update(file.bytes)
-                new File(tmpDir, file.name + ".md5").text = md5.digest().encodeHex().toString()
+                new File(outputDir, file.name + ".md5").text = md5.digest().encodeHex().toString()
 
-                // ✅ Génère .sha1
+                // ✅ .sha1
                 def sha1 = MessageDigest.getInstance("SHA-1")
                 sha1.update(file.bytes)
-                new File(tmpDir, file.name + ".sha1").text = sha1.digest().encodeHex().toString()
+                new File(outputDir, file.name + ".sha1").text = sha1.digest().encodeHex().toString()
             }
         }
     }
 
-    from(tmpDir)
-    destinationDirectory = file("$buildDir")
-    archiveFileName = 'central-bundle.zip'
+    // 🧳 Création du ZIP sans structure de répertoire
+    from(outputDir)
+    destinationDirectory = outputZip.parentFile
+    archiveFileName = outputZip.name
     includeEmptyDirs = false
 }
