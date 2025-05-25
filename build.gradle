@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'java-gradle-plugin'
     id 'maven-publish'
-    id 'signing'
+    //id 'signing'
     id 'application'
     id 'com.gradle.plugin-publish' version '1.3.1'
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
@@ -94,12 +94,13 @@ publishing {
         mavenLocal()
     }
 }
-
-
+/*
 signing {
     useGpgCmd()
     sign publishing.publications.mavenJava
 }
+
+ */
 
 nexusPublishing {
     repositories {
@@ -118,47 +119,51 @@ afterEvaluate {
     publishTasks.each { publishTask ->
         signTasks.each { signTask ->
             // Ajoute une dépendance explicite seulement si les tâches partagent des artefacts
-            publishTask.dependsOn(signTask)
+            //publishTask.dependsOn(signTask)
         }
     }
 }
 
 import java.security.MessageDigest
 
-tasks.register('createCentralBundle', Zip) {
-    dependsOn 'publishMavenJavaPublicationToMavenLocal', 'signMavenJavaPublication'
+def version = project.version
+def artifactPath = file("${System.getProperty("user.home")}/.m2/repository/io/github/grafx1/scaffolder/spring-boot-scaffolder/$version")
+def outputDir = layout.buildDirectory.dir("central-bundle-temp").get().asFile
 
-    def version = project.version
-    def artifactPath = file("${System.getProperty("user.home")}/.m2/repository/io/github/grafx1/scaffolder/spring-boot-scaffolder/$version")
+tasks.register('prepareCentralBundleFiles') {
+    dependsOn 'publishMavenJavaPublicationToMavenLocal'
 
-    def outputDir = layout.buildDirectory.dir("central-bundle-temp").get().asFile
-    def outputZip = layout.buildDirectory.file("central-bundle.zip").get().asFile
-
-    // 🔧 Préparation des fichiers
-    doFirst {
+    doLast {
+        println("🔧 Preparing files from $artifactPath")
         outputDir.mkdirs()
 
         artifactPath.eachFile { file ->
             if (file.isFile()) {
                 def destFile = new File(outputDir, file.name)
-                file.copyTo(destFile)
+                destFile.bytes = file.bytes // ✅ remplacement ici
 
-                // ✅ .md5
+                // .md5
                 def md5 = MessageDigest.getInstance("MD5")
                 md5.update(file.bytes)
                 new File(outputDir, file.name + ".md5").text = md5.digest().encodeHex().toString()
 
-                // ✅ .sha1
+                // .sha1
                 def sha1 = MessageDigest.getInstance("SHA-1")
                 sha1.update(file.bytes)
                 new File(outputDir, file.name + ".sha1").text = sha1.digest().encodeHex().toString()
             }
         }
     }
+}
 
-    // 🧳 Création du ZIP sans structure de répertoire
-    from(outputDir)
-    destinationDirectory = outputZip.parentFile
-    archiveFileName = outputZip.name
+
+
+tasks.register('createCentralBundle', Zip) {
+    dependsOn 'prepareCentralBundleFiles'
+
+    from layout.buildDirectory.dir("central-bundle-temp")
+    destinationDirectory = layout.buildDirectory
+    archiveFileName = 'central-bundle.zip'
     includeEmptyDirs = false
 }
+
