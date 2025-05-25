@@ -110,14 +110,15 @@ nexusPublishing {
     }
 }
 
-// Corrige les dépendances de tâches pour la signature
-tasks.named("publishMavenJavaPublicationToMavenLocal") {
-    dependsOn tasks.named("signPluginMavenPublication")
-}
+// Corrige les dépendances entre les tâches de signature et de publication
+afterEvaluate {
+    def signTasks = tasks.withType(Sign)
+    def publishTasks = tasks.matching { it.name.startsWith("publish") }
 
-// Vérifie que la tâche existe avant d'ajouter une dépendance
-if (tasks.findByName("publishPluginMavenPublicationToMavenLocal")) {
-    tasks.named("publishPluginMavenPublicationToMavenLocal") {
-        dependsOn tasks.named("signPluginMavenPublication")
+    publishTasks.each { publishTask ->
+        signTasks.each { signTask ->
+            // Ajoute une dépendance explicite seulement si les tâches partagent des artefacts
+            publishTask.dependsOn(signTask)
+        }
     }
 }
