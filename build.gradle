@@ -109,3 +109,15 @@ nexusPublishing {
         }
     }
 }
+
+// Corrige les dépendances de tâches pour la signature
+tasks.named("publishMavenJavaPublicationToMavenLocal") {
+    dependsOn tasks.named("signPluginMavenPublication")
+}
+
+// Vérifie que la tâche existe avant d'ajouter une dépendance
+if (tasks.findByName("publishPluginMavenPublicationToMavenLocal")) {
+    tasks.named("publishPluginMavenPublicationToMavenLocal") {
+        dependsOn tasks.named("signPluginMavenPublication")
+    }
+}
