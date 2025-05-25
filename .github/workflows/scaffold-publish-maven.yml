@@ -35,7 +35,7 @@ jobs:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
       - name: Build and sign artifacts
-        run: ./gradlew clean build publishToMavenLocal signMavenJavaPublication
+        run: ./gradlew clean build generatePomFileForMavenJavaPublication publishToMavenLocal signMavenJavaPublication
 
       - name: Package bundle for Sonatype Central
         run: |
