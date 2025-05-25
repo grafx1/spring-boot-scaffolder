@@ -41,15 +41,13 @@ jobs:
       - name: Upload bundle to Sonatype Central Publisher
         id: upload
         run: |
-          cd build
           response=$(curl -s -X POST \
             -H "Authorization: Bearer $SONATYPE_TOKEN" \
-            -F bundle=@central-bundle.zip \
+            -F bundle=@build/central-bundle.zip \
             https://central.sonatype.com/api/v1/publisher/upload)
 
           echo "$response"
           echo "deployment_id=$(echo $response | jq -r '.deploymentId')" >> $GITHUB_OUTPUT
-          cd ..
         env:
           SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
 
