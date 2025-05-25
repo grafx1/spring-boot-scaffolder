@@ -5,7 +5,7 @@ import ${packageName}.dto.${className}Dto;
 import ${packageName}.entity.${className}Entity;
 import ${packageName}.repository.${className}Repository;
 import ${packageName}.mapper.${className}Mapper;
-import ${packageName}.service.impl.${className}ServiceImpl
+import ${packageName}.service.impl.${className}ServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
