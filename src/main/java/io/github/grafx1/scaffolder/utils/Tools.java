@@ -12,20 +12,50 @@ import java.util.regex.Pattern;
 
 public class Tools {
 
+    /**
+     * Color resetting hexadecimal code
+     */
     public static final String RESET = "\u001B[0m";
+    /**
+     * Green hexadecimal code color
+     */
     public static final String GREEN = "\u001B[32m";
+    /**
+     * Cyan hexadecimal code color
+     */
     public static final String CYAN = "\u001B[36m";
+    /**
+     * Purple hexadecimal code color
+     */
     public static final String PURPLE = "\u001B[35m";
+    /**
+     * Red hexadecimal code color
+     */
     public static final String RED = "\u001B[31m";
 
+    /**
+     * String Utils for capitalize the first char of string
+     * @param str
+     * @return
+     */
     public static String capitalize(String str) {
         return str.substring(0, 1).toUpperCase() + str.substring(1);
     }
 
+    /**
+     * String utils, lower case the first char of a string
+     * @param word
+     * @return
+     */
     private static String camelCase(String word) {
         return word.substring(0, 1).toLowerCase() + word.substring(1);
     }
 
+    /**
+     * Extract groupId and artefactId from pom file
+     * @param xml
+     * @return
+     */
     public static Map<String, String> extractPomInfo(String xml) {
         Map<String, String> result = new HashMap<>();
 
@@ -43,12 +73,12 @@ public class Tools {
         return result;
     }
 
-    private static String extractXmlTag(String xml, String tag) {
-        Pattern p = Pattern.compile("<" + tag + ">(.*?)</" + tag + ">");
-        Matcher m = p.matcher(xml);
-        return m.find() ? m.group(1) : "";
-    }
-
+    /**
+     * Compute FQCN From projet (build.gradle or pom.xml)
+     * @param projectDir
+     * @param entityName
+     * @return
+     */
     public static String computeFQCNFromProject(Path projectDir, String entityName) {
         Properties props = new Properties();
         String group = "com.default";
@@ -90,6 +120,9 @@ public class Tools {
         return group + "." + appName + "." + camelCase(entityName) + "." + capitalize(entityName);
     }
 
+    /**
+     * Print help
+     */
     public static void printHelp() {
         System.out.println(GREEN + "\n *** Spring Boot Scaffolder Plugin - Help & Hype ***" + RESET);
         System.out.println(GREEN + "--------------------------------------------------" + RESET);
@@ -114,7 +147,9 @@ public class Tools {
         System.out.println(" Feedback? Ping @grafx1 with \n" + RESET);
     }
 
-
+    /**
+     * Print header when scaffolding
+     */
     public static void printHeader() {
         System.out.println(PURPLE +
                 "\n    --------------------------------------------------" +
@@ -124,6 +159,12 @@ public class Tools {
                 RESET);
     }
 
+    /**
+     * Print Result when scaffold finished
+     * @param fqcn
+     * @param withTests
+     * @param baseDir
+     */
     public static void printFooter(String fqcn, boolean withTests, String baseDir) {
         System.out.println(PURPLE + "\n----------------------------------------------------");
         System.out.println("-> Scaffolding : " + CYAN + fqcn + RESET);

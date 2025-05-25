@@ -10,11 +10,10 @@ on:
 
 jobs:
   publish:
-    name: Publish Plugin
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v3
 
       - name: Set up Java
@@ -22,57 +21,53 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-          cache: gradle
 
-      - name: Extract version from build.gradle
+      - name: 🧾 Extract version from Gradle
         id: version
-        run: echo "version=$(./gradlew -q properties | grep '^version:' | awk '{print $2}')" >> $GITHUB_OUTPUT
+        run: echo "version=$(./gradlew -q properties | grep "^version:" | awk '{print $2}')" >> $GITHUB_OUTPUT
 
-      - name: Import GPG Key
+      - name: Import GPG key
         run: |
           echo "$GPG_PRIVATE_KEY" | gpg --batch --import
         env:
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
-      - name: Build and sign artifacts
-        run: ./gradlew clean build generatePomFileForMavenJavaPublication publishToMavenLocal signMavenJavaPublication
+      - name: Build & publish to Maven local
+        run: ./gradlew clean build publishMavenJavaPublicationToMavenLocal signMavenJavaPublication
 
-      - name: Package bundle for Sonatype Central
+      - name: Create central-bundle.zip from ~/.m2
         run: |
           mkdir bundle
-          cp build/libs/*.jar bundle/
-          cp build/publications/mavenJava/*.pom bundle/
-          cp build/libs/*.jar.asc bundle/ || true
-          cp build/publications/mavenJava/*.pom.asc bundle/ || true
+          cp ~/.m2/repository/io/github/grafx1/scaffolder/spring-boot-scaffolder/${{ steps.version.outputs.version }}/* bundle/
           zip -r central-bundle.zip bundle
 
-      - name: Upload bundle to Central Publisher Portal
+      - name: Upload bundle to Sonatype Central Publisher
         id: upload
         run: |
           response=$(curl -s -X POST \
             -H "Authorization: Bearer $SONATYPE_TOKEN" \
             -F bundle=@central-bundle.zip \
             https://central.sonatype.com/api/v1/publisher/upload)
-          
+
           echo "$response"
           echo "deployment_id=$(echo $response | jq -r '.deploymentId')" >> $GITHUB_OUTPUT
         env:
           SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
 
-      - name: Poll validation & publish
+      - name: Poll status & publish
         run: |
-          echo "Waiting for validation..."
+          echo "Checking validation status..."
           for i in {1..10}; do
             sleep 15
             status=$(curl -s -X POST \
               -H "Authorization: Bearer $SONATYPE_TOKEN" \
               "https://central.sonatype.com/api/v1/publisher/status?id=${{ steps.upload.outputs.deployment_id }}" \
               | jq -r '.status')
-          
+
             echo "Status: $status"
-          
+
             if [[ "$status" == "VALIDATED" ]]; then
-              echo "Publishing..."
+              echo "Publishing deployment..."
               curl -X POST \
                 -H "Authorization: Bearer $SONATYPE_TOKEN" \
                 "https://central.sonatype.com/api/v1/publisher/deployment/${{ steps.upload.outputs.deployment_id }}"
@@ -82,22 +77,7 @@ jobs:
               exit 1
             fi
           done
-          
-          echo "Timeout waiting for validation"
+          echo "Timeout: validation not completed"
           exit 1
         env:
           SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: Release v${{ steps.version.outputs.version }}
-          body: |
-            Spring Boot Scaffolder plugin v${{ steps.version.outputs.version }} is now live!
-            - Published to Gradle Plugin Portal
-            - Published to Maven Central
-            - Includes latest features and improvements
-          files: build/libs/*.jar
-        env:
-          GITHUB_TOKEN: ${{ secrets.PUB_GITHUB_TOKEN }}
