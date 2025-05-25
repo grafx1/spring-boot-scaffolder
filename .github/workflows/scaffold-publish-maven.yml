@@ -38,16 +38,30 @@ jobs:
       - name: Créer le central-bundle.zip (via Gradle)
         run: ./gradlew createCentralBundle
 
+      - name: Vérifier le ZIP généré
+        run: |
+          ls -lh build/central-bundle.zip
+          unzip -l build/central-bundle.zip
+
       - name: Upload bundle to Sonatype Central Publisher
         id: upload
         run: |
-          response=$(curl -s -X POST \
+          response=$(curl -s -w "%{http_code}" -o response.json \
+            -X POST \
             -H "Authorization: Bearer $SONATYPE_TOKEN" \
             -F bundle=@build/central-bundle.zip \
             https://central.sonatype.com/api/v1/publisher/upload)
-
-          echo "$response"
-          echo "deployment_id=$(echo $response | jq -r '.deploymentId')" >> $GITHUB_OUTPUT
+      
+          echo "HTTP Status: $response"
+          cat response.json
+      
+          if [[ "$response" != "200" && "$response" != "201" ]]; then
+          echo "❌ Upload failed with status $response"
+          exit 1
+          fi
+      
+          deployment_id=$(jq -r '.deploymentId' response.json)
+          echo "deployment_id=$deployment_id" >> $GITHUB_OUTPUT
         env:
           SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
 
