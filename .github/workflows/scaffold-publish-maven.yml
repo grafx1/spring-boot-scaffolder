@@ -35,35 +35,15 @@ jobs:
       - name: Build & publish to Maven local
         run: ./gradlew clean build publishMavenJavaPublicationToMavenLocal signMavenJavaPublication
 
-      - name: Create central-bundle.zip from ~/.m2
-        run: |
-          mkdir bundle
-
-          # Localisation des artefacts
-          ARTIFACT_PATH="$HOME/.m2/repository/io/github/grafx1/scaffolder/spring-boot-scaffolder/${{ steps.version.outputs.version }}"
-      
-          # Copie des artefacts à la racine du dossier bundle
-          cp $ARTIFACT_PATH/* bundle/
-          
-          cd bundle
-
-          for f in *; do
-          [ -f "$f" ] || continue
-          md5sum "$f" | awk '{ print $1 }' > "$f.md5"
-          sha1sum "$f" | awk '{ print $1 }' > "$f.sha1"
-          done
-          
-          # Créer le ZIP sans aucun ./ ni dossier
-          # On utilise zip à partir d'une liste de fichiers sans chemin
-          find . -maxdepth 1 -type f -printf "%P\n" | zip ../central-bundle.zip -@
-          cd ..
+      - name: Créer le central-bundle.zip (via Gradle)
+        run: ./gradlew createCentralBundle
 
       - name: Upload bundle to Sonatype Central Publisher
         id: upload
         run: |
           response=$(curl -s -X POST \
             -H "Authorization: Bearer $SONATYPE_TOKEN" \
-            -F bundle=@central-bundle.zip \
+            -F bundle=@build/central-bundle.zip \
             https://central.sonatype.com/api/v1/publisher/upload)
 
           echo "$response"

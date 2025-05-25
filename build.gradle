@@ -122,3 +122,39 @@ afterEvaluate {
         }
     }
 }
+
+import java.security.MessageDigest
+
+tasks.register('createCentralBundle', Zip) {
+    dependsOn 'publishMavenJavaPublicationToMavenLocal', 'signMavenJavaPublication'
+
+    def version = project.version
+    def artifactPath = file("${System.getProperty("user.home")}/.m2/repository/io/github/grafx1/scaffolder/spring-boot-scaffolder/$version")
+
+    // Crée un répertoire temporaire
+    def tmpDir = file("$buildDir/central-bundle-temp")
+    doFirst {
+        tmpDir.mkdirs()
+        artifactPath.eachFile { file ->
+            if (file.isFile()) {
+                def destFile = new File(tmpDir, file.name)
+                file.copyTo(destFile)
+
+                // ✅ Génère .md5
+                def md5 = MessageDigest.getInstance("MD5")
+                md5.update(file.bytes)
+                new File(tmpDir, file.name + ".md5").text = md5.digest().encodeHex().toString()
+
+                // ✅ Génère .sha1
+                def sha1 = MessageDigest.getInstance("SHA-1")
+                sha1.update(file.bytes)
+                new File(tmpDir, file.name + ".sha1").text = sha1.digest().encodeHex().toString()
+            }
+        }
+    }
+
+    from(tmpDir)
+    destinationDirectory = file("$buildDir")
+    archiveFileName = 'central-bundle.zip'
+    includeEmptyDirs = false
+}
