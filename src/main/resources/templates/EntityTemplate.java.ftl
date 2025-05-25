@@ -17,5 +17,6 @@ public class ${className}Entity {
     @Version
     private Long version;
 
+    private String reference;
     // Add your fields here
 }
