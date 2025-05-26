@@ -125,7 +125,8 @@ afterEvaluate {
 import java.security.MessageDigest
 
 def version = project.version
-def artifactPath = file("${System.getProperty("user.home")}/.m2/repository/io/github/grafx1/scaffolder/spring-boot-scaffolder/$version")
+def artifactRoot = file("${System.getProperty("user.home")}/.m2/repository")
+def artifactPath = new File(artifactRoot, "io/github/grafx1/scaffolder/spring-boot-scaffolder/${version}")
 def outputDir = layout.buildDirectory.dir("central-bundle-temp").get().asFile
 
 tasks.register('prepareCentralBundleFiles') {
@@ -135,36 +136,38 @@ tasks.register('prepareCentralBundleFiles') {
         println("🔧 Preparing files from $artifactPath")
         outputDir.mkdirs()
 
+        def relativePath = artifactPath.absolutePath - artifactRoot.absolutePath
+        def targetBase = new File(outputDir, relativePath)
+
+        targetBase.mkdirs()
         artifactPath.eachFile { file ->
             if (file.isFile()) {
-                def destFile = new File(outputDir, file.name)
-                destFile.bytes = file.bytes // ✅ remplacement ici
+                def destFile = new File(targetBase, file.name)
+                destFile.bytes = file.bytes
 
-                // .md5
+                // Crée les hashes .md5 et .sha1
                 def md5 = MessageDigest.getInstance("MD5")
                 md5.update(file.bytes)
-                new File(outputDir, file.name + ".md5").text = md5.digest().encodeHex().toString()
+                new File(targetBase, file.name + ".md5").text = md5.digest().encodeHex().toString()
 
-                // .sha1
                 def sha1 = MessageDigest.getInstance("SHA-1")
                 sha1.update(file.bytes)
-                new File(outputDir, file.name + ".sha1").text = sha1.digest().encodeHex().toString()
+                new File(targetBase, file.name + ".sha1").text = sha1.digest().encodeHex().toString()
             }
         }
     }
 }
 
 
+
 tasks.register('createCentralBundle', Zip) {
     dependsOn 'prepareCentralBundleFiles'
 
-    from(layout.buildDirectory.dir("central-bundle-temp")) {
-        into ''
-    }
-
+    from(layout.buildDirectory.dir("central-bundle-temp"))
     archiveFileName = 'central-bundle.zip'
     destinationDirectory = layout.buildDirectory
 }
+
 
 
 
