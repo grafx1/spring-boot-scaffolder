@@ -161,11 +161,14 @@ tasks.register('createCentralBundle', Exec) {
     def zipTarget = layout.buildDirectory.file("central-bundle.zip").get().asFile
     def tmpDir = layout.buildDirectory.dir("central-bundle-temp").get().asFile
 
-    workingDir tmpDir
-    commandLine 'zip', '-r', '-0', zipTarget.absolutePath, '.'
+    // Récupère tous les fichiers sans ./ depuis le répertoire
+    def files = tmpDir.listFiles().collect { it.name }
 
+    workingDir tmpDir
+    commandLine 'zip', zipTarget.absolutePath, *files
     doFirst {
-        println "📦 Creating ZIP from ${tmpDir}"
+        println "📦 Creating flat zip: ${zipTarget}"
     }
 }
+
 
