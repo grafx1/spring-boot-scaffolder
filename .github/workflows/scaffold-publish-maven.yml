@@ -73,7 +73,7 @@ jobs:
             status=$(curl -s -X POST \
               -H "Authorization: Bearer $SONATYPE_TOKEN" \
               "https://central.sonatype.com/api/v1/publisher/status?id=${{ steps.upload.outputs.deployment_id }}" \
-              | jq -r '.status')
+              | jq -r '.deploymentState')
 
             echo "Status: $status"
 
