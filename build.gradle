@@ -117,7 +117,7 @@ afterEvaluate {
     publishTasks.each { publishTask ->
         signTasks.each { signTask ->
             // Ajoute une dépendance explicite seulement si les tâches partagent des artefacts
-            //publishTask.dependsOn(signTask)
+            publishTask.dependsOn(signTask)
         }
     }
 }
@@ -158,16 +158,24 @@ tasks.register('prepareCentralBundleFiles') {
 tasks.register('createCentralBundle', Exec) {
     dependsOn 'prepareCentralBundleFiles'
 
-    def zipTarget = layout.buildDirectory.file("central-bundle.zip").get().asFile
     def tmpDir = layout.buildDirectory.dir("central-bundle-temp").get().asFile
+    def zipTarget = layout.buildDirectory.file("central-bundle.zip").get().asFile
 
-    // Récupère tous les fichiers sans ./ depuis le répertoire
-    def files = tmpDir.listFiles().collect { it.name }
-
-    workingDir tmpDir
-    commandLine 'zip', zipTarget.absolutePath, *files
     doFirst {
         println "📦 Creating flat zip: ${zipTarget}"
+
+        // Liste des fichiers à inclure
+        def files = tmpDir.listFiles()
+                .findAll { it.isFile() }
+                .collect { it.name }
+
+        if (files.isEmpty()) {
+            throw new GradleException("❌ No files found in ${tmpDir} to zip.")
+        }
+
+        // Commande ZIP dynamique
+        commandLine 'zip', zipTarget.absolutePath, *files
+        workingDir tmpDir
     }
 }
 
