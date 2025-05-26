@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import ${basePackage}.dto.PagedResponse;
 import ${packageName}.dto.${className}Dto;
 import ${packageName}.entity.${className}Entity;
 import ${packageName}.mapper.${className}Mapper;
@@ -77,18 +78,15 @@ class ${className}ServiceTest {
     }
 
     @Test
-    void shouldReturnPagedDtos() {
-        Pageable pageable = PageRequest.of(0, 10);
-        List<${className}Entity> entities = List.of(buildEntity());
-        Page<${className}Entity> page = new PageImpl<>(entities, pageable, 1);
-        Page<${className}Dto> mappedPage = new PageImpl<>(List.of(buildDto()), pageable, 1);
+    void shouldReturnPagedResult() {
+    Page<${className}Entity> entityPage = new PageImpl<>(List.of(new ${className}Entity()));
+        Page<${className}Dto> dtoPage = new PageImpl<>(List.of(buildDto()));
+        when(repository.findAll(anyString(), any())).thenReturn(entityPage);
+        when(mapper.toDto(any(${className}Entity.class))).thenReturn(buildDto());
 
-        when(repository.findAll(anyString(), eq(pageable))).thenReturn(page);
-        when(mapper.toDtoPage(page)).thenReturn(mappedPage);
+        PagedResponse<${className}Dto> result = service.findAll("search", Pageable.ofSize(10));
 
-        Page<${className}Dto> result = service.findAll("test", pageable);
-
-        assertThat(result).hasSize(1);
+        assertThat(result.content()).hasSize(1);
     }
 
     @Test

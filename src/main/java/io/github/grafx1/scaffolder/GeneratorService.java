@@ -1,9 +1,18 @@
 package io.github.grafx1.scaffolder;
 
-import freemarker.template.*;
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import freemarker.template.TemplateExceptionHandler;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import static io.github.grafx1.scaffolder.utils.Tools.*;
 
@@ -38,6 +47,7 @@ public class GeneratorService {
                         throw new IllegalArgumentException("Invalid entity name : " + entity);
                     }
                     String fqcn = computeFQCNFromProject(baseDir, entity);
+                    System.out.println("fqcn : " + fqcn);
                     printFooter(fqcn, withTests, baseDir.toString());
 
                     generateAll(fqcn, baseDir, withTests);
@@ -52,10 +62,19 @@ public class GeneratorService {
         String className = parts[parts.length - 1];
         String classNameLower = className.toLowerCase();
         String basePackage = String.join(".", Arrays.copyOf(parts, parts.length - 1));
+        String baseAppPackage = String.join(".", Arrays.copyOf(parts, parts.length - 2));
+
+        System.out.println("basePackage : " + basePackage);
+        System.out.println("baseAppPackage : " + baseAppPackage);
+
+        // Générer PagedResponse.java une seule fois si besoin
+        generatePagedResponse(baseAppPackage, baseDir);
 
         Map<String, Object> data = new HashMap<>();
         data.put("className", className);
         data.put("classNameLower", classNameLower);
+        data.put("basePackage", baseAppPackage);
+
 
         String[] types = {"Entity", "Dto", "Repository", "Service", "ServiceImpl", "Controller", "Mapper"};
         String[] subPackages = {"entity", "dto", "repository", "service", "service.impl", "controller", "mapper"};
@@ -80,6 +99,19 @@ public class GeneratorService {
                 String testTemplate = type + "TemplateTest.java.ftl";
                 generateFile(cfgTest, testTemplate, testOutputDir, testOutputFile, dataCopy);
             }
+        }
+    }
+
+    private void generatePagedResponse(String packageName, Path baseDir) {
+        String outputDir = baseDir + "/src/main/java/" + packageName.replace('.', '/') + "/dto/";
+        Path dir = Paths.get(outputDir);
+        File file = dir.resolve("PagedResponse.java").toFile();
+
+        if (!file.exists()) {
+            Map<String, Object> data = Map.of("packageName", packageName);
+            generateFile(cfgMain, "PagedResponseTemplate.java.ftl", outputDir, "PagedResponse.java", data);
+        } else {
+            System.out.println("PagedResponse.java already exists, skipping.");
         }
     }
 

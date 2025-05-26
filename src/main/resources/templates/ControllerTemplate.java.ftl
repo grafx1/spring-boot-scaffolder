@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-
+import ${basePackage}.dto.PagedResponse;
 import ${packageName}.dto.${className}Dto;
 import ${packageName}.service.${className}Service;
 
@@ -23,8 +23,8 @@ public class ${className}Controller {
     }
 
     @GetMapping
-    public ResponseEntity<?> findAll(@RequestParam String searchTerm, Pageable pageable) {
-        return ResponseEntity.ok(service.findAll(searchTerm, pageable));
+    public ResponseEntity<PagedResponse<${className}Dto>> findAll(@RequestParam(defaultValue = "") String term,Pageable pageable ) {
+        return ResponseEntity.ok(service.findAll(term, pageable));
     }
 
     @PutMapping("/{id}")

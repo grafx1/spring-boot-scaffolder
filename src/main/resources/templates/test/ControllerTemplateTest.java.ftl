@@ -1,5 +1,6 @@
 package ${packageName}.controller;
 
+import ${basePackage}.dto.PagedResponse;
 import ${packageName}.dto.${className}Dto;
 import ${packageName}.service.${className}Service;
 
@@ -95,15 +96,18 @@ class ${className}ControllerTest {
 
     @Test
     void shouldReturnPagedList() throws Exception {
-        Page<${className}Dto> page = new PageImpl<>(List.of(buildDto()));
-        when(service.findAll(anyString(), any(Pageable.class))).thenReturn(page);
+    Page<${className}Dto> page = new PageImpl<>(List.of(buildDto()));
+        PagedResponse<${className}Dto> response = PagedResponse.from(page);
+
+        when(service.findAll(anyString(), any())).thenReturn(response);
 
         mockMvc.perform(get("/api/${classNameLower}s")
-            .param("searchTerm", "keyword")
-            .param("page", "0")
-            .param("size", "10"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.content", hasSize(1)));
+        .param("term", "test")
+        .param("page", "0")
+        .param("size", "10"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content", hasSize(1)))
+        .andExpect(jsonPath("$.totalElements").value(1));
     }
 
     private ${className}Dto buildDto() {
