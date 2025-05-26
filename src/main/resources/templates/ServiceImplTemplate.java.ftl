@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-
+import ${basePackage}.dto.PagedResponse;
 import ${packageName}.dto.${className}Dto;
 import ${packageName}.service.${className}Service;
 import ${packageName}.entity.${className}Entity;
@@ -34,8 +34,9 @@ public class ${className}ServiceImpl implements ${className}Service {
     }
 
     @Override
-    public Page<${className}Dto> findAll(String term, Pageable pageable) {
-        return mapper.toDtoPage(repository.findAll(term, pageable));
+    public PagedResponse<${className}Dto> findAll(String term, Pageable pageable) {
+        Page<${className}Entity> page = repository.findAll(term, pageable);
+        return PagedResponse.from(page.map(mapper::toDto));
     }
 
     @Override

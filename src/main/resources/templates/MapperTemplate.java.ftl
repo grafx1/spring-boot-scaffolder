@@ -17,10 +17,13 @@ import java.util.List;
 public interface ${className}Mapper {
     ${className}Mapper INSTANCE = Mappers.getMapper(${className}Mapper.class);
 
+
     ${className}Dto toDto(${className}Entity entity);
+    @Mapping(target = "version", ignore = true)
     ${className}Entity toEntity(${className}Dto dto);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "version", ignore = true)
     void updateEntityFromDto(${className}Dto dto, @MappingTarget ${className}Entity entity);
 
     List<${className}Dto> toDtoList(List<${className}Entity> entities);

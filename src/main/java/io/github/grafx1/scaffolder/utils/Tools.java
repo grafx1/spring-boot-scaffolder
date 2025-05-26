@@ -10,6 +10,8 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static io.github.grafx1.scaffolder.utils.PackageNameUtil.computeBasePackage;
+
 public class Tools {
 
     /**
@@ -32,24 +34,6 @@ public class Tools {
      * Red hexadecimal code color
      */
     public static final String RED = "\u001B[31m";
-
-    /**
-     * String Utils for capitalize the first char of string
-     * @param str
-     * @return
-     */
-    public static String capitalize(String str) {
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
-    }
-
-    /**
-     * String utils, lower case the first char of a string
-     * @param word
-     * @return
-     */
-    private static String camelCase(String word) {
-        return word.substring(0, 1).toLowerCase() + word.substring(1);
-    }
 
     /**
      * Extract groupId and artefactId from pom file
@@ -116,8 +100,7 @@ public class Tools {
         } catch (IOException e) {
             System.err.println("Impossible de lire les métadonnées du projet");
         }
-
-        return group + "." + appName + "." + camelCase(entityName) + "." + capitalize(entityName);
+        return computeBasePackage(group, appName, entityName);
     }
 
     /**
@@ -126,7 +109,7 @@ public class Tools {
     public static void printHelp() {
         System.out.println(GREEN + "\n *** Spring Boot Scaffolder Plugin - Help & Hype ***" + RESET);
         System.out.println(GREEN + "--------------------------------------------------" + RESET);
-        System.out.println(GREEN + "👷 What does it do?" + RESET);
+        System.out.println(GREEN + " What does it do?" + RESET);
         System.out.println(GREEN + "  Automatically generates boilerplate Spring Boot code" + RESET);
         System.out.println(GREEN + "  for Entities, DTOs, Services, Controllers, Repositories, etc." + RESET);
         System.out.println(GREEN + "\n-> Usage:" + RESET);
