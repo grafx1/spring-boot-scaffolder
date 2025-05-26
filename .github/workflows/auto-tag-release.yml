@@ -1,4 +1,4 @@
-name: Auto Tag and Release
+name: Auto-Tag Only on Version Change
 
 on:
   push:
@@ -6,37 +6,42 @@ on:
       - main
 
 jobs:
-  tag-and-release:
-    name: Tag from build.gradle and create release
+  version-check:
+    name: Check version change and tag
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # needed to compare to previous commit
 
-      - name: Read version from build.gradle
-        id: get_version
+      - name: Get current version from build.gradle
+        id: version
         run: |
-          version=$(grep "^version" build.gradle | cut -d "'" -f2)
-          echo "Version from build.gradle: $version"
+          version=$(grep "^version" build.gradle | cut -d"'" -f2)
+          echo "Detected version: $version"
           echo "version=$version" >> $GITHUB_OUTPUT
 
-      - name: Create Git tag
+      - name: Check if tag already exists
+        id: tag_exists
+        run: |
+          git fetch --tags
+          if git rev-parse "v${{ steps.version.outputs.version }}" >/dev/null 2>&1; then
+            echo "Tag already exists."
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Tag does not exist."
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run tests before tagging
+        run: ./gradlew test
+
+      - name: Tag and push if new version
+        if: steps.tag_exists.outputs.exists == 'false'
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git tag v${{ steps.get_version.outputs.version }}
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git v${{ steps.get_version.outputs.version }}
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ steps.get_version.outputs.version }}
-          name: Release v${{ steps.get_version.outputs.version }}
-          body: |
-            Automatic release for version **v${{ steps.get_version.outputs.version }}**
-            
-            Changes:
-            - See commit history for details.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git tag v${{ steps.version.outputs.version }}
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git v${{ steps.version.outputs.version }}
