@@ -1,5 +1,5 @@
 
-# 🧰 Spring Boot Scaffolder Plugin - User Guide
+# 🧰 Spring Boot Scaffolder Plugin v2.1.0 - User Guide
 
 This plugin automatically generates the structure of a Spring Boot module using a **domain-oriented package layout**:
 
