@@ -155,28 +155,16 @@ tasks.register('prepareCentralBundleFiles') {
 }
 
 
-tasks.register('createCentralBundle', Exec) {
+tasks.register('createCentralBundle', Zip) {
     dependsOn 'prepareCentralBundleFiles'
 
-    def tmpDir = layout.buildDirectory.dir("central-bundle-temp").get().asFile
-    def zipTarget = layout.buildDirectory.file("central-bundle.zip").get().asFile
-
-    doFirst {
-        println "📦 Creating flat zip: ${zipTarget}"
-
-        // Liste des fichiers à inclure
-        def files = tmpDir.listFiles()
-                .findAll { it.isFile() }
-                .collect { it.name }
-
-        if (files.isEmpty()) {
-            throw new GradleException("❌ No files found in ${tmpDir} to zip.")
-        }
-
-        // Commande ZIP dynamique
-        commandLine 'zip', zipTarget.absolutePath, *files
-        workingDir tmpDir
+    from(layout.buildDirectory.dir("central-bundle-temp")) {
+        into ''
     }
+
+    archiveFileName = 'central-bundle.zip'
+    destinationDirectory = layout.buildDirectory
 }
+
 
 
