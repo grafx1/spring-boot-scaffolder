@@ -155,13 +155,17 @@ tasks.register('prepareCentralBundleFiles') {
 }
 
 
-
-tasks.register('createCentralBundle', Zip) {
+tasks.register('createCentralBundle', Exec) {
     dependsOn 'prepareCentralBundleFiles'
 
-    from layout.buildDirectory.dir("central-bundle-temp")
-    destinationDirectory = layout.buildDirectory
-    archiveFileName = 'central-bundle.zip'
-    includeEmptyDirs = false
+    def zipTarget = layout.buildDirectory.file("central-bundle.zip").get().asFile
+    def tmpDir = layout.buildDirectory.dir("central-bundle-temp").get().asFile
+
+    workingDir tmpDir
+    commandLine 'zip', '-r', '-0', zipTarget.absolutePath, '.'
+
+    doFirst {
+        println "📦 Creating ZIP from ${tmpDir}"
+    }
 }
 
