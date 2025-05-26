@@ -1,5 +1,5 @@
 
-# 🧰 Spring Boot Scaffolder Plugin v2.1.0 - User Guide
+# 🧰 Spring Boot Scaffolder Plugin - User Guide
 
 This plugin automatically generates the structure of a Spring Boot module using a **domain-oriented package layout**:
 
@@ -36,30 +36,72 @@ It scaffolds the following layers for each entity:
 
 ---
 
-## Prerequis
-- Mapstruct plugin
+
+## Required Dependencies
+
+### If you're using Gradle
+
 ```groovy
-// Gradle config: build.gradle
 dependencies {
 	...
+	// Java record support
+	implementation 'com.fasterxml.jackson.module:jackson-module-parameter-names'
+	
+	// Support for Optional, Stream, etc.
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+	
+	// Support for java.time.* types (LocalDate, Instant, etc.)
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
+	// Mapstruct
 	implementation 'org.mapstruct:mapstruct:1.6.3'
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
 
 	...
 }
 ```
+
+### If you're using Maven
 ```xml
-<!-- Maven config: pom.xml -->
 <properties>
 	<org.mapstruct.version>1.6.3</org.mapstruct.version>
 </properties>
 <dependencies>
+    <!-- Lombok -->
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <optional>true</optional>
+    </dependency>
+
+    <!-- Mapstruct -->
     <dependency>
         <groupId>org.mapstruct</groupId>
         <artifactId>mapstruct</artifactId>
         <version>${org.mapstruct.version}</version>
     </dependency>
+    <!-- Java record support -->
+    <dependency>
+	  <groupId>com.fasterxml.jackson.module</groupId>
+	  <artifactId>jackson-module-parameter-names</artifactId>
+     </dependency>
+	
+     <!-- Support for Optional, Stream, etc. -->
+     <dependency>
+	  <groupId>com.fasterxml.jackson.datatype</groupId>
+	  <artifactId>jackson-datatype-jdk8</artifactId>
+     </dependency>
+	
+     <!-- Support for java.time.* types (LocalDate, Instant, etc.) -->
+     <dependency>
+	  <groupId>com.fasterxml.jackson.datatype</groupId>
+	  <artifactId>jackson-datatype-jsr310</artifactId>
+      </dependency>
+
 </dependencies>
 
 <build>
@@ -81,62 +123,53 @@ dependencies {
                 </annotationProcessorPaths>
             </configuration>
         </plugin>
+
+	<!-- Lombok -->
+	<plugin>
+	      <groupId>org.apache.maven.plugins</groupId>
+	        <artifactId>maven-compiler-plugin</artifactId>
+		<configuration>
+		  <annotationProcessorPaths>
+		    <path>
+			<groupId>org.projectlombok</groupId>
+		  	<artifactId>lombok</artifactId>
+		    </path>
+		  </annotationProcessorPaths>
+	        </configuration>
+         </plugin>
+         <plugin>
+	        <groupId>org.springframework.boot</groupId>
+	        <artifactId>spring-boot-maven-plugin</artifactId>
+	        <configuration>
+	          <excludes>
+	                <exclude>
+	                  <groupId>org.projectlombok</groupId>
+	                  <artifactId>lombok</artifactId>
+	                </exclude>
+	          </excludes>
+	        </configuration>
+         </plugin>
     </plugins>
 </build>
 ```
-- Lombok plugin
-```groovy
-// Gradle config: build.gradle
-dependencies {
-	...
 
-	compileOnly 'org.projectlombok:lombok'
-	annotationProcessor 'org.projectlombok:lombok'
-	
- 	...
+## Manual Registration for Jackson (Optional)
+Spring Boot often auto-configures these modules if they're available on the classpath. Otherwise, you can register them manually like this:
+```java
+@Configuration
+public class JacksonConfig {
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new ParameterNamesModule());
+        mapper.registerModule(new Jdk8Module());
+        mapper.registerModule(new JavaTimeModule());
+        return mapper;
+    }
 }
-```
-```xml
-<!-- Maven config: pom.xml -->
-<dependencies>
-  <dependency>
-        <groupId>org.projectlombok</groupId>
-        <artifactId>lombok</artifactId>
-        <optional>true</optional>
-  </dependency>
-</dependencies>
 
-<build>
-  <plugins>
-    <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-	<configuration>
-	  <annotationProcessorPaths>
-	    <path>
-		<groupId>org.projectlombok</groupId>
-	  	<artifactId>lombok</artifactId>
-	    </path>
-	  </annotationProcessorPaths>
-        </configuration>
-    </plugin>
-    <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
-        <configuration>
-          <excludes>
-                <exclude>
-                  <groupId>org.projectlombok</groupId>
-                  <artifactId>lombok</artifactId>
-                </exclude>
-          </excludes>
-        </configuration>
-      </plugin>
-		
-  </plugins>
-</build>
 ```
-
 ---
 
 ## 🛠️ Usage with a Gradle Project
@@ -148,7 +181,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath "io.github.grafx1.scaffolder:spring-boot-scaffolder:2.1.0"
+    classpath "io.github.grafx1.scaffolder:spring-boot-scaffolder:2.1.1"
   }
 }
 
@@ -177,7 +210,7 @@ repositories {
 <dependency>
   <groupId>io.github.grafx1.scaffolder</groupId>
   <artifactId>spring-boot-scaffolder</artifactId>
-  <version>2.1.0</version>
+  <version>2.1.1</version>
 </dependency>
 ```
 
@@ -219,3 +252,17 @@ mvn exec:java -DentityName="Customer,Invoice" -DwithTests="true"
 The scaffolder will generate:
 - Business logic files in `src/main/java`
 - Test files in `src/test/java` if `withTests=true` ✅
+
+  _______________________________________________________________________
+
+## v2.1.1 Release Notes
+
+### Key Features:
+- Replaced `PageImpl` with a generated `PagedResponse<T>` wrapper for stable pagination
+- `PagedResponse` class is now generated automatically if it doesn’t exist
+- README updated with recommended Jackson dependencies for proper record serialization
+
+### Bug Fixes:
+- Auto-normalization of artifactIds with dashes (`-`) → `my-project` becomes `my_project`
+- `version` field is now automatically ignored in MapStruct mappers
+
