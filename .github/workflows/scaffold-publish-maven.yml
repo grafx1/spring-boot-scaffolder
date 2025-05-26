@@ -60,7 +60,7 @@ jobs:
           exit 1
           fi
       
-          deployment_id=$(jq -r '.deploymentId' response.json)
+          deployment_id=$(cat response.json)
           echo "deployment_id=$deployment_id" >> $GITHUB_OUTPUT
         env:
           SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
