@@ -170,6 +170,13 @@ public class JacksonConfig {
 }
 
 ```
+
+### Why this is important
+
+Without these modules, Jackson may not be able to properly deserialize:
+- Java `record` (unrecognized implicit constructors)
+- `Optional` or `Stream` types
+- Dates and times (`LocalDate`, `ZonedDateTime`, etc.)
 ---
 
 ## 🛠️ Usage with a Gradle Project
