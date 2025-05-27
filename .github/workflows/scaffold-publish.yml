@@ -3,7 +3,12 @@ name: Publish to Plugin Portal
 on:
   push:
     tags:
-      - 'v*.*.*'  # ex: v1.1.0
+      - 'v*.*.*'  # Ex: v1.1.0
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Version tag to publish (e.g. v2.1.1)'
+        required: true
 
 jobs:
   publish:
