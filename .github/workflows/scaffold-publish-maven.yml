@@ -3,7 +3,12 @@ name: Publish to Maven Central
 on:
   push:
     tags:
-      - 'v*.*.*'  # ex: v1.1.0
+      - 'v*.*.*'  # Ex: v1.1.0
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Version tag to publish (e.g. v2.1.1)'
+        required: true
 
 jobs:
   publish:
@@ -19,9 +24,16 @@ jobs:
           distribution: temurin
           java-version: 21
 
-      - name: Extract version from Gradle
+      - name: Determine release version
         id: version
-        run: echo "version=$(./gradlew -q properties | grep "^version:" | awk '{print $2}')" >> $GITHUB_OUTPUT
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            version=${{ github.event.inputs.release_version }}
+          else
+            version=${GITHUB_REF##refs/tags/}
+          fi
+          echo "Publishing version: $version"
+          echo "version=$version" >> $GITHUB_OUTPUT
 
       - name: Import GPG key
         run: |
@@ -48,15 +60,15 @@ jobs:
             -H "Authorization: Bearer $SONATYPE_TOKEN" \
             -F bundle=@build/central-bundle.zip \
             https://central.sonatype.com/api/v1/publisher/upload)
-      
+
           echo "HTTP Status: $response"
           cat response.json
-      
+
           if [[ "$response" != "200" && "$response" != "201" ]]; then
-          echo "❌ Upload failed with status $response"
-          exit 1
+            echo "Upload failed with status $response"
+            exit 1
           fi
-      
+
           deployment_id=$(cat response.json)
           echo "deployment_id=$deployment_id" >> $GITHUB_OUTPUT
         env:
@@ -85,7 +97,7 @@ jobs:
               exit 1
             fi
           done
-          echo "Timeout: validation not completed"
+          echo "⌛ Timeout: validation not completed"
           exit 1
         env:
           SONATYPE_TOKEN: ${{ secrets.SONATYPE_TOKEN }}
