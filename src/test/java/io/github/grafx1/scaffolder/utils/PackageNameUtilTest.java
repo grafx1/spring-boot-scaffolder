@@ -11,7 +11,7 @@ class PackageNameUtilTest {
     @Test
     void shouldSanitizeArtifactIdWithDashes() {
         // GIVEN
-        String groupId = "com.example";
+        String groupId = "com.example-test";
         String artifactId = "my-project";
         String entity = "CustomerMerchant";
 
@@ -21,9 +21,9 @@ class PackageNameUtilTest {
         // THEN
         System.out.println(packageName);
         assertThat(packageName)
-                .isEqualTo("com.example.my_project.customerMerchant.CustomerMerchant")
+                .isEqualTo("com.example_test.my_project.customerMerchant.CustomerMerchant")
                 .doesNotContain("-")
-                .startsWith("com.example.my_project");
+                .startsWith("com.example_test.my_project");
     }
 
     @Test
