@@ -19,9 +19,19 @@ repositories {
 dependencies {
     implementation 'org.freemarker:freemarker:2.3.32'
 
+    // Dépendances pour les tests
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.0'
     testImplementation 'org.assertj:assertj-core:3.24.2'
+
+    // Ajout des dépendances nécessaires pour tester les composants générés
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:3.2.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-web:3.2.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa:3.2.0'
+    testImplementation 'org.mapstruct:mapstruct:1.6.3'
+    testImplementation 'org.hamcrest:hamcrest-core:2.2'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.16.0'
+    testImplementation 'com.h2database:h2:2.2.224'  // Base de données en mémoire pour les tests
 }
 
 tasks.named('test') {
@@ -95,18 +105,29 @@ publishing {
     }
 }
 
-signing {
-    useGpgCmd()
-    sign publishing.publications.mavenJava
-}
+// Rendre la signature conditionnelle
+boolean isSigningEnabled = !project.hasProperty('skipSigning')
 
-nexusPublishing {
-    repositories {
-        sonatype {
-            username = findProperty("ossrhUsername")
-            password = findProperty("ossrhPassword")
-        }
+// Désactive complètement la signature si skipSigning est présent
+if (isSigningEnabled) {
+    signing {
+        useGpgCmd()
+        sign publishing.publications
     }
+} else {
+    // Crée une configuration de signature vide pour éviter les erreurs
+    // mais n'associe aucune tâche de signature réelle
+    signing {
+        required = false
+        sign publishing.publications
+    }
+
+    // Désactive explicitement les tâches de signature
+    tasks.withType(Sign).configureEach {
+        enabled = false
+    }
+
+    println "Signature GPG désactivée avec -PskipSigning"
 }
 
 // Corrige les dépendances entre les tâches de signature et de publication
@@ -167,7 +188,4 @@ tasks.register('createCentralBundle', Zip) {
     archiveFileName = 'central-bundle.zip'
     destinationDirectory = layout.buildDirectory
 }
-
-
-
 

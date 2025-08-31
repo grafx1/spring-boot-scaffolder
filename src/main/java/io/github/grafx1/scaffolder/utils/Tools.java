@@ -36,6 +36,11 @@ public class Tools {
     public static final String RED = "\u001B[31m";
 
     /**
+     * Yellow hexadecimal code color
+     */
+    public static final String YELLOW = "\u001B[33m";
+
+    /**
      * Extract groupId and artefactId from pom file
      * @param xml
      * @return
